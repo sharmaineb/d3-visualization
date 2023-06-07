@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Disney Movies and TV Shows Visualization</title>
+  <style>
+    .circle {
+      fill: #d896ff;
+      opacity: 0.7;
+    }
+
+    .circle:hover {
+      fill: #ffc700;
+    }
+  </style>
+</head>
+<body>
+  <svg id="chart"></svg>
+
+  <script src="https://d3js.org/d3.v6.min.js"></script>
+  <script>
+    // load the Disney Movies and TV Shows dataset
+    d3.csv('disney_plus_shows.csv').then(function(data) {
+    // set up the chart dimensions
+      const margin = { top: 20, right: 20, bottom: 20, left: 40 };
+      const width = 900 - margin.left - margin.right;
+      const height = 600 - margin.top - margin.bottom;
+
+      // create the chart SVG element
+      const svg = d3
+        .select('#chart')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
+        .append('g')
+        .attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+      // create the circles representing the movies and TV shows
+      svg
+        .selectAll('.circle')
+        .data(data)
+        .enter()
+        .append('circle')
+        .attr('class', 'circle')
+        .attr('cx', function(d, i) {
+          return (i % 10) * 50 + 25;
+        })
+        .attr('cy', function(d, i) {
+          return Math.floor(i / 10) * 50 + 25;
+        })
+        .attr('r', 20)
+        .on('mouseover', function(d) {
+          d3.select(this).attr('fill', 'orange');
+        })
+        .on('mouseout', function(d) {
+          d3.select(this).attr('fill', 'steelblue');
+        });
+
+      // display the titles
+      svg
+        .selectAll('.circle')
+        .append('title')
+        .text(function(d) {
+          return d.title;
+        });
+    });
+  </script>
+</body>
+</html>
+

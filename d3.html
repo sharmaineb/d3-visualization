@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Disney Plus Shows Visualization</title>
+  <style>
+    .dot {
+      fill: steelblue;
+    }
+
+    .tooltip {
+      position: absolute;
+      pointer-events: none;
+      background-color: #fff;
+      padding: 8px;
+      font-size: 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      opacity: 0;
+    }
+  </style>
+</head>
+<body>
+  <svg width="960" height="500"></svg>
+  <div class="tooltip"></div>
+  <script src="https://d3js.org/d3.v6.min.js"></script>
+  <script>
+    // Load the data from CSV
+    d3.csv("disney_plus_shows.csv").then(function(data) {
+      data.forEach(function(d) {
+        // Convert numeric values to numbers
+        d.release_year = +d.release_year;
+        d.duration = +d.duration.replace(" min", "");
+      });
+
+      // Set up the SVG container
+      const svg = d3.select("svg"),
+            margin = {top: 20, right: 20, bottom: 30, left: 40},
+            width = +svg.attr("width") - margin.left - margin.right,
+            height = +svg.attr("height") - margin.top - margin.bottom;
+
+      const x = d3.scaleLinear().range([0, width]),
+            y = d3.scaleLinear().range([height, 0]);
+
+      const g = svg.append("g")
+                  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      // Set the domain for x and y scales
+      x.domain(d3.extent(data, function(d) { return d.release_year; })).nice();
+      y.domain(d3.extent(data, function(d) { return d.duration; })).nice();
+
+      // Draw the dots
+      g.selectAll(".dot")
+        .data(data)
+        .enter().append("circle")
+            .attr("class", "dot")
+            .attr("cx", function(d) { return x(d.release_year); })
+            .attr("cy", function(d) { return y(d.duration); })
+            .attr("r", 4)
+            .on("mouseover", function(d) {
+            // Show tooltip on hover
+            tooltip.style("opacity", 1)
+                .html(d.title)
+                .style("left", (d3.event.pageX + 10) + "px")
+                .style("top", (d3.event.pageY - 20) + "px");
+            })
+            .on("mouseout", function() {
+            // Hide tooltip on mouseout
+            tooltip.style("opacity", 0);
+            });
+
+
+      // Add x-axis
+      g.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x))
+        .select(".domain")
+          .remove();
+
+      // Add y-axis
+      g.append("g")
+        .call(d3.axisLeft(y))
+        .append("text")
+          .attr("fill", "#000")
+          .attr("transform", "rotate(-90)")
+          .attr("y", 6)
+          .attr("dy", "0.71em")
+          .attr("text-anchor", "end")
+          .text("Duration (minutes)");
+
+          // Add tooltip div
+            const tooltip = d3.select("body")
+                      .append("div")
+                      .attr("class", "tooltip")
+                      .style("opacity", 0);
+
+  }).catch(function(error) {
+    console.log(error);
+  });
+  </script>
+</body>
+</html>
+
