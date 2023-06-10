@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bar Chart - Number of Shows by Genre or Category</title>
+  <style>
+    svg {
+      font-family: Arial, sans-serif;
+    }
+    .bar {
+      fill: steelblue;
+    }
+    .axis {
+      font-size: 12px;
+    }
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+  </style>
+</head>
+<body>
+  <h3>Which genres or categories have the highest number of shows?</h3>
+  <svg id="chart" width="600" height="400"></svg>
+  <button onclick="startBarRace()">Start Bar Race</button>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script>
+    const snapshotData = [
+      [
+        { genre: "Comedy", count: 120 },
+        { genre: "Drama", count: 90 },
+        { genre: "Action", count: 80 },
+        { genre: "Adventure", count: 70 },
+        { genre: "Fantasy", count: 60 },
+      ],
+      [
+        { genre: "Comedy", count: 110 },
+        { genre: "Drama", count: 100 },
+        { genre: "Action", count: 70 },
+        { genre: "Adventure", count: 60 },
+        { genre: "Fantasy", count: 50 },
+      ],
+      // Add more snapshot data objects for each time interval
+    ];
+
+    const svg = d3.select("#chart"); // Select the SVG element by its ID
+    const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+    const width = +svg.attr("width") - margin.left - margin.right;
+    const height = +svg.attr("height") - margin.top - margin.bottom;
+
+    const x = d3
+      .scaleBand()
+      .domain(snapshotData[0].map(d => d.genre))
+      .range([margin.left, width - margin.right])
+      .padding(0.1);
+
+    const y = d3
+      .scaleLinear()
+      .domain([0, d3.max(snapshotData[0], d => d.count)])
+      .range([height - margin.bottom, margin.top]);
+
+    const xAxis = g =>
+      g
+        .attr("transform", `translate(0, ${height - margin.bottom})`)
+        .call(d3.axisBottom(x))
+        .attr("class", "axis")
+        .append("text")
+        .attr("x", width / 2)
+        .attr("y", margin.bottom - 10)
+        .attr("fill", "currentColor")
+        .attr("text-anchor", "middle")
+        .text("Genre");
+
+    const yAxis = g =>
+      g
+        .attr("transform", `translate(${margin.left}, 0)`)
+        .call(d3.axisLeft(y))
+        .attr("class", "axis")
+        .append("text")
+        .attr("x", -margin.left)
+        .attr("y", height / 2)
+        .attr("fill", "currentColor")
+        .attr("text-anchor", "middle")
+        .attr("transform", "rotate(-90)")
+        .text("Count");
+
+    svg.append("g").call(xAxis);
+    svg.append("g").call(yAxis);
+
+    function updateBars(data) {
+      // Update the domain of the x and y scales based on the new data
+      x.domain(data.map(d => d.genre));
+      y.domain([0, d3.max(data, d => d.count)]);
+
+      // Perform the necessary data binding
+      const bars = svg.selectAll(".bar").data(data, d => d.genre);
+
+      // Exit phase: Remove bars not present in the new data
+      bars.exit().remove();
+
+      // Enter phase: Add new bars from the new data
+      bars
+        .enter()
+        .append("rect")
+        .attr("class", "bar")
+        .attr("x", d => x(d.genre))
+        .attr("y", d => y(d.count))
+        .attr("width", x.bandwidth())
+        .attr("height", d => height - margin.bottom - y(d.count))
+        .merge(bars) // Merge enter and update selections
+        .transition() // Apply transition to animate the bars
+        .duration(500) // Set the duration of the transition
+        .attr("x", d => x(d.genre))
+        .attr("y", d => y(d.count))
+        .attr("width", x.bandwidth())
+        .attr("height", d => height - margin.bottom - y(d.count));
+    }
+
+    let currentIndex = 0;
+    const totalSnapshots = snapshotData.length;
+
+    function startBarRace() {
+      // Update bars with the current snapshot data
+      updateBars(snapshotData[currentIndex]);
+
+      // Increment the current index
+      currentIndex++;
+
+      // If we have reached the end of the snapshots, reset the index
+      if (currentIndex === totalSnapshots) {
+        currentIndex = 0;
+      }
+
+      // Call the function recursively with a delay of 1000ms (1 second)
+      setTimeout(startBarRace, 2000);
+    }
+  </script>
+</body>
+</html>
+
+
+<!-- Which genres or categories have the highest number of shows? -->
+
