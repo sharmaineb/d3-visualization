@@ -32,104 +32,87 @@
   <svg width="600" height="400"></svg>
 
   <script src="https://d3js.org/d3.v7.min.js"></script>
+
   <script>
-    // Sample data (replace with your own)
+    // Sample data (replace with the Disney movies dataset)
     const data = [
-      { year: 2010, count: 10 },
-      { year: 2011, count: 15 },
-      { year: 2012, count: 20 },
-      { year: 2013, count: 12 },
-      { year: 2014, count: 18 },
-      { year: 2015, count: 25 },
-      { year: 2016, count: 22 },
-      { year: 2017, count: 30 },
-      { year: 2018, count: 35 },
-      { year: 2019, count: 40 },
-      { year: 2020, count: 38 },
-      { year: 2021, count: 45 }
+      { year: 1937, count: 1 },
+      { year: 1940, count: 2 },
+      { year: 1941, count: 1 },
+      // Add more data points from the dataset
+      // ...
     ];
 
-    const svg = d3.select("svg");
-    const margin = { top: 20, right: 20, bottom: 30, left: 40 };
-    const width = +svg.attr("width") - margin.left - margin.right;
-    const height = +svg.attr("height") - margin.top - margin.bottom;
+    // Read the Disney movies dataset from local file
+    d3.csv("disney_plus_shows.csv").then((csvData) => {
+      // Convert release year to numeric value and count the occurrences
+      const yearCount = d3.rollup(csvData, v => v.length, d => +d.release_year);
 
-    const x = d3
-      .scaleLinear()
-      .domain(d3.extent(data, d => d.year))
-      .range([margin.left, width - margin.right]);
+      // Convert the rollup data to an array of objects
+      const data = Array.from(yearCount, ([year, count]) => ({ year, count }));
 
-    const y = d3
-      .scaleLinear()
-      .domain([0, d3.max(data, d => d.count)])
-      .range([height - margin.bottom, margin.top]);
+      // Rest of the code remains the same...
 
-    const xAxis = g =>
-      g
-        .attr("transform", `translate(0, ${height - margin.bottom})`)
-        .call(d3.axisBottom(x).ticks(10).tickFormat(d3.format("d")))
-        .attr("class", "axis");
+      const svg = d3.select("svg");
+      const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+      const width = +svg.attr("width") - margin.left - margin.right;
+      const height = +svg.attr("height") - margin.top - margin.bottom;
 
-    const yAxis = g =>
-      g
-        .attr("transform", `translate(${margin.left}, 0)`)
-        .call(d3.axisLeft(y))
-        .attr("class", "axis");
+      const x = d3
+        .scaleLinear()
+        .domain(d3.extent(data, d => d.year))
+        .range([margin.left, width - margin.right]);
 
-    const line = d3
-      .line()
-      .x(d => x(d.year))
-      .y(d => y(d.count));
+      const y = d3
+        .scaleLinear()
+        .domain([0, d3.max(data, d => d.count)])
+        .range([height - margin.bottom, margin.top]);
 
-    svg.append("g").call(xAxis);
-    svg.append("g").call(yAxis);
-    // Label the x-axis
-svg
-  .append("text")
-  .attr("class", "axis-label")
-  .attr("text-anchor", "middle")
-  .attr("x", width / 2 + margin.left)
-  .attr("y", height + margin.top + 20) // Adjust the y position as needed
-  .text("Year");
+      const xAxis = g =>
+        g
+          .attr("transform", `translate(0, ${height - margin.bottom})`)
+          .call(d3.axisBottom(x).ticks(10).tickFormat(d3.format("d")))
+          .attr("class", "axis");
 
-// Label the y-axis
-svg
-  .append("text")
-  .attr("class", "axis-label")
-  .attr("text-anchor", "middle")
-  .attr("x", -height / 2 - margin.top)
-  .attr("y", margin.left - 10) // Adjust the y position as needed
-  .attr("transform", "rotate(-90)")
-  .text("Count");
+      const yAxis = g =>
+        g
+          .attr("transform", `translate(${margin.left}, 0)`)
+          .call(d3.axisLeft(y))
+          .attr("class", "axis");
 
+      const line = d3
+        .line()
+        .x(d => x(d.year))
+        .y(d => y(d.count));
 
-    // Animate the line
-animate(svg.append("path").datum(data).attr("class", "line").attr("d", line));
+      svg.append("g").call(xAxis);
+      svg.append("g").call(yAxis);
+      
+      // Animate the line
+      animate(svg.append("path").datum(data).attr("class", "line").attr("d", line));
 
-// Function to animate the line
-function animate(path) {
-  const totalLength = path.node().getTotalLength();
+            // Function to animate the line
+            function animate(path) {
+        const totalLength = path.node().getTotalLength();
 
-  path
-    .attr("stroke-dasharray", totalLength + " " + totalLength)
-    .attr("stroke-dashoffset", totalLength)
-    .transition()
-    .duration(2000) // Animation duration in milliseconds
-    .ease(d3.easeLinear)
-    .attr("stroke-dashoffset", 0)
-    .transition()
-    .delay(1000) // Delay before resetting the line in milliseconds
-    .duration(2000) // Reset animation duration in milliseconds
-    .ease(d3.easeLinear)
-    .attr("stroke-dashoffset", totalLength)
-    .on("end", function() {
-      // Reset the line and animate again
-      animate(path);
+        path
+          .attr("stroke-dasharray", totalLength + " " + totalLength)
+          .attr("stroke-dashoffset", totalLength)
+          .transition()
+          .duration(2000) // Animation duration in milliseconds
+          .ease(d3.easeLinear)
+          .attr("stroke-dashoffset", 0)
+          .transition()
+          .delay(1000) // Delay before resetting the line in milliseconds
+          .duration(2000) // Reset animation duration in milliseconds
+          .ease(d3.easeLinear)
+          .attr("stroke-dashoffset", totalLength)
+          .on("end", function() {
+            // Reset the line and animate again
+            animate(path);
+          });
+      }
     });
-}
-
-
-
   </script>
 </body>
 </html>
