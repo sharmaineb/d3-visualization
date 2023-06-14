@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Disney Plus Visualization</title>
+  <title>Disney Plus Scatterplot</title>
   <style>
     .dot {
       fill: purple;
@@ -19,35 +19,46 @@
   </style>
 </head>
 <body>
+  <h1>Questions:</h1>
+  <p>Is there a relationship between the release year and the duration of Disney Plus shows/movies?
+    <br>
+    <br>
+    Are there any clusters or groupings based on release year and show/movie duration?
+    <br>
+    <br>
+    Are there any outliers in terms of show/movie duration?</p>
+    <br>
   <svg width="960" height="500"></svg>
   <div class="tooltip"></div>
   <script src="https://d3js.org/d3.v6.min.js"></script>
   <script>
-  // load the data from CSV
+    // load the data from CSV
     d3.csv("disney_plus_shows.csv").then(function(data) {
+      const parseDate = d3.timeParse("%Y");
+
       data.forEach(function(d) {
-  // convert numeric values to numbers
-        d.release_year = +d.release_year;
+        // parse the release_year as a date object
+        d.release_year = parseDate(d.release_year);
         d.duration = +d.duration.replace(" min", "");
       });
 
-  // set up the SVG container
+      // set up the SVG container
       const svg = d3.select("svg"),
             margin = {top: 20, right: 20, bottom: 30, left: 40},
             width = +svg.attr("width") - margin.left - margin.right,
             height = +svg.attr("height") - margin.top - margin.bottom;
 
-      const x = d3.scaleLinear().range([0, width]),
+      const x = d3.scaleTime().range([0, width]),
             y = d3.scaleLinear().range([height, 0]);
 
       const g = svg.append("g")
                   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-  // set the domain for x and y scales
+      // set the domain for x and y scales
       x.domain(d3.extent(data, function(d) { return d.release_year; })).nice();
       y.domain(d3.extent(data, function(d) { return d.duration; })).nice();
 
-  // draw the dots
+      // draw the dots
       g.selectAll(".dot")
         .data(data)
         .enter()
@@ -57,25 +68,26 @@
         .attr("cy", function(d) { return y(d.duration); })
         .attr("r", 4)
         .on("mouseover", function(event, d) {
-  // show tooltip on hover
+          // show tooltip on hover
           tooltip.style("opacity", 1)
             .html(d.title)
             .style("left", (event.pageX + 10) + "px")
             .style("top", (event.pageY - 20) + "px");
         })
         .on("mouseout", function() {
-  // hide tooltip on mouseout
+          // hide tooltip on mouseout
           tooltip.style("opacity", 0);
         });
 
-  // add x-axis
+      // add x-axis
       g.append("g")
         .attr("transform", "translate(0," + height + ")")
         .call(d3.axisBottom(x))
         .select(".domain")
         .remove();
-          
-  // add y-axis
+        
+
+      // add y-axis
       g.append("g")
         .call(d3.axisLeft(y))
         .append("text")
@@ -84,16 +96,21 @@
         .attr("y", 6)
         .attr("dy", "0.71em")
         .attr("text-anchor", "end")
-        .text("Duration (minutes)");
+        .text("Duration(Mins)")
 
-  // add tooltip div
-      const tooltip = d3.select("body")
+      // add tooltip div
+          const tooltip = d3.select("body")
         .append("div")
         .attr("class", "tooltip")
         .style("opacity", 0);
     });
-
   </script>
 </body>
 </html>
 
+<!-- Questions: -->
+<!-- Is there a relationship between the release year and the duration of Disney Plus shows?
+
+Are there any clusters or groupings based on release year and show duration?
+
+Are there any outliers in terms of show duration?-->
